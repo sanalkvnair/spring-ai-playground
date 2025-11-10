@@ -1,6 +1,7 @@
 package dev.sanal.chat;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,14 +11,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ChatController {
 
-    private final ChatClient chatClient;
+    private final ChatClient openAichatClient;
+    private final ChatClient ollamaAiChatClient;
+    private final static String OPENAI = "openai";
+    private final static String OLLAMA = "ollama";
 
-    public ChatController(ChatClient.Builder chatClientBuilder) {
-        this.chatClient = chatClientBuilder.build();
+    public ChatController(
+            @Qualifier("openAiChatClient") ChatClient openAichatClient,
+            @Qualifier("ollamaAiChatClient") ChatClient ollamaAiChatClient
+    ) {
+        this.openAichatClient = openAichatClient;
+        this.ollamaAiChatClient = ollamaAiChatClient;
     }
 
     @GetMapping("/ai")
-    String generation(@RequestParam("userInput") String userInput) {
-        return this.chatClient.prompt().user(userInput).call().content();
+    String generation(@RequestParam("userInput") String userInput,
+                      @RequestParam(value = "aiModel", defaultValue = "ollama") String aiModel) {
+        if(aiModel.equals(OPENAI))
+            return this.openAichatClient.prompt().user(userInput).call().content();
+        return this.ollamaAiChatClient.prompt().user(userInput).call().content();
     }
 }
