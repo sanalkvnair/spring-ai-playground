@@ -53,4 +53,18 @@ public class ChatController {
             return this.openAichatClient.prompt().user(userInput).stream().content();
         return this.ollamaAiChatClient.prompt().user(userInput).stream().content();
     }
+
+    @GetMapping("/system/country/cities")
+    Flux<String> streamSystemGeneration(@RequestParam(value = "country", defaultValue = "sweden") String country,
+                                        @RequestParam(value = "format", defaultValue = "JSON") String format) {
+        String systemTextTemplate = "You are helpful assistant who provides response in {format} for the questions asked.";
+        String userPromptTemplates = "Generate 5 popular cities in the {country}";
+        return this.ollamaAiChatClient.prompt()
+                .system(sp -> sp.text(systemTextTemplate).param("format", format))
+                .user(promptUserSpec -> promptUserSpec
+                        .text(userPromptTemplates)
+                        .param("country", country))
+                .stream()
+                .content();
+    }
 }
