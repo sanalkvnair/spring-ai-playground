@@ -37,8 +37,11 @@ public class ChatController {
     CountryCities getCountryCities(
             @RequestParam(value = "country", defaultValue = "Sweden") String country
     ) {
+        String promptTemplates = "Generate 5 popular cities in the {country}";
         return this.ollamaAiChatClient.prompt()
-                .user("Generate 5 popular cities in the " + country)
+                .user(promptUserSpec -> promptUserSpec
+                        .text(promptTemplates)
+                        .param("country", country))
                 .call()
                 .entity(CountryCities.class);
     }
